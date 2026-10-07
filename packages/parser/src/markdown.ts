@@ -40,7 +40,7 @@ export const DEFAULT_OPTIONS: FormatOptions = {
   titleHeading: 'h1',
   chapterLevel: 2,
   separator: 'rule',
-  location: 'after',
+  location: 'off',
   noteStyle: 'callout',
   color: 'off',
   authorWikilink: false,

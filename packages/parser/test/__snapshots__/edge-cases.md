@@ -10,8 +10,6 @@ tags: [book]
 
 # “Quotes” & <Angles>
 
-*Location 3*
-
 > [!note]
 > a note written before any highlight
 
@@ -19,7 +17,6 @@ tags: [book]
 
 Line one of a highlight
 that continues on line two.
-*Location 10*
 
 > [!note]
 > first note on the blue highlight
@@ -31,9 +28,7 @@ that continues on line two.
 ---
 
 A pink highlight with a big location number.
-*Location 1234*
 
 ---
 
 Special characters: *stars*, _underscores_, [brackets], # hash, <tag> & ampersand.
-*Page 7 · Location 1240*

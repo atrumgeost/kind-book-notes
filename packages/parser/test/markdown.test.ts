@@ -3,13 +3,21 @@ import { DEFAULT_OPTIONS, suggestedFileName, toMarkdown, type FormatOptions } fr
 import { loadSynthetic } from './helpers';
 
 const date = '2026-10-07';
+// Most tests turn the location line on (it's off by default) so they can check where things land.
 const render = (name: string, options: Partial<FormatOptions> = {}) =>
-  toMarkdown(loadSynthetic(name), { ...DEFAULT_OPTIONS, date, ...options });
+  toMarkdown(loadSynthetic(name), { ...DEFAULT_OPTIONS, location: 'after', date, ...options });
 
 describe('default output', () => {
   // Full-output snapshots: open these files to see exactly what the app produces.
   it.each(['single-level', 'two-level', 'edge-cases'])('%s', async (name) => {
-    await expect(render(name)).toMatchFileSnapshot(`__snapshots__/${name}.md`);
+    const md = toMarkdown(loadSynthetic(name), { ...DEFAULT_OPTIONS, date });
+    await expect(md).toMatchFileSnapshot(`__snapshots__/${name}.md`);
+  });
+
+  it('has no location lines by default', () => {
+    const md = toMarkdown(loadSynthetic('single-level'), { ...DEFAULT_OPTIONS, date });
+    expect(md).toContain('“Gardening is not a gift. It is a habit of attention.”—Rosa Almeida\n\n---\n\nYou don’t');
+    expect(md).not.toContain('*Page 5');
   });
 
   it('writes the frontmatter from the spec', () => {
