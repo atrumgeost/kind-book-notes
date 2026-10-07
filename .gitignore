@@ -3,6 +3,7 @@ fixtures/private/
 
 node_modules/
 dist/
+dist-preview/
 .env
 .env.*
 !.env.example
