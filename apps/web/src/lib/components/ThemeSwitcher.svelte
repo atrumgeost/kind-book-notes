@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as ToggleGroup from '$lib/components/ui/toggle-group';
-	import { setMode, userPrefersMode } from 'mode-watcher';
+	import { theme } from '$lib/theme.svelte';
 	import MonitorIcon from '@lucide/svelte/icons/monitor';
 	import MoonIcon from '@lucide/svelte/icons/moon';
 	import SunIcon from '@lucide/svelte/icons/sun';
@@ -17,9 +17,9 @@
 	size="sm"
 	aria-label="Theme"
 	bind:value={
-		() => userPrefersMode.current,
+		() => theme.choice,
 		(next: string) => {
-			if (next === 'light' || next === 'dark' || next === 'system') setMode(next);
+			if (next === 'light' || next === 'dark' || next === 'system') theme.set(next);
 		}
 	}
 >

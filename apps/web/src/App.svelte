@@ -2,6 +2,7 @@
 	import { bookVariables, suggestedFileName, toMarkdown, type Book } from '@kind-book-notes/parser';
 	import { readKindleExport } from '$lib/book';
 	import { defaultSettings, loadSettings, saveSettings } from '$lib/settings';
+	import { applyTheme } from '$lib/theme.svelte';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Toaster } from '$lib/components/ui/sonner';
 	import DropZone from '$lib/components/DropZone.svelte';
@@ -9,11 +10,12 @@
 	import Preview from '$lib/components/Preview.svelte';
 	import SectionEditor from '$lib/components/SectionEditor.svelte';
 	import ThemeSwitcher from '$lib/components/ThemeSwitcher.svelte';
-	import { ModeWatcher } from 'mode-watcher';
 	import LockIcon from '@lucide/svelte/icons/lock';
 	import SlidersIcon from '@lucide/svelte/icons/sliders-horizontal';
 	// An invented book with the same structure as a real export, so the page shows what it does before you drop a file.
 	import sampleHtml from '../../../fixtures/synthetic/two-level.html?raw';
+
+	applyTheme();
 
 	let settings = $state(loadSettings());
 	// Syncing to localStorage is what effects are for; saveSettings never touches component state.
@@ -34,6 +36,8 @@
 	// Same counts as the {{highlights}} and {{notes}} properties, so the badges never disagree with the output.
 	let stats = $derived(bookVariables(book, { ...settings, date: today }));
 
+	const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
 	function loadFile(html: string, name: string) {
 		try {
 			original = readKindleExport(html);
@@ -46,7 +50,6 @@
 	}
 </script>
 
-<ModeWatcher />
 <Toaster position="bottom-center" />
 
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-10">
@@ -96,8 +99,8 @@
 			<div class="flex flex-col gap-2">
 				<div class="flex flex-wrap items-center gap-2">
 					{#if isSample}<Badge variant="secondary">Sample book</Badge>{/if}
-					<Badge variant="outline" class="tabular-nums">{stats.highlights} highlights</Badge>
-					<Badge variant="outline" class="tabular-nums">{stats.notes} notes</Badge>
+					<Badge variant="outline" class="tabular-nums">{plural(Number(stats.highlights), 'highlight', 'highlights')}</Badge>
+					<Badge variant="outline" class="tabular-nums">{plural(Number(stats.notes), 'note', 'notes')}</Badge>
 				</div>
 				<h2 class="font-heading text-2xl font-semibold text-balance">{book.title}</h2>
 				{#if book.authors.length}<p class="text-muted-foreground -mt-1">{book.authors.join(', ')}</p>{/if}

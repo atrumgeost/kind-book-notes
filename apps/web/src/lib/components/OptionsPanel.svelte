@@ -121,8 +121,9 @@
 	<section class="flex flex-col gap-4" aria-label="Properties">
 		{@render group('Properties')}
 		<SwitchRow id="frontmatter" label="Add properties (frontmatter)" bind:checked={settings.frontmatter.enabled} />
-		<SwitchRow id="author-link" label="Author as [[link]]" bind:checked={settings.authorWikilink} />
 		{#if settings.frontmatter.enabled}
+			<!-- The author link only shows up in the properties, so it's only offered with them. -->
+			<SwitchRow id="author-link" label="Author as [[link]]" bind:checked={settings.authorWikilink} />
 			<FrontmatterEditor bind:fields={settings.frontmatter.fields} />
 		{/if}
 	</section>
