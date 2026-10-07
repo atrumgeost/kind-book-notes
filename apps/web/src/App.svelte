@@ -9,7 +9,7 @@
 	import OptionsPanel from '$lib/components/OptionsPanel.svelte';
 	import Preview from '$lib/components/Preview.svelte';
 	import SectionEditor from '$lib/components/SectionEditor.svelte';
-	import ThemeSwitcher from '$lib/components/ThemeSwitcher.svelte';
+	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 	import LockIcon from '@lucide/svelte/icons/lock';
 	import SlidersIcon from '@lucide/svelte/icons/sliders-horizontal';
 	// An invented book with the same structure as a real export, so the page shows what it does before you drop a file.
@@ -24,7 +24,7 @@
 	// Parsed books are only ever replaced, never mutated, so they don't need deep reactivity.
 	const sample = readKindleExport(sampleHtml);
 	let original: Book = $state.raw(sample);
-	// `book` holds chapter edits; `original` is what "Undo chapter edits" goes back to.
+	// `book` holds chapter renames; `original` is what "Undo renames" goes back to.
 	let book: Book = $state.raw(sample);
 	let isSample = $state(true);
 	let error = $state('');
@@ -62,7 +62,7 @@
 				Turn your Kindle highlights and notes into clean Markdown for Obsidian or any notes app.
 			</p>
 		</div>
-		<ThemeSwitcher />
+		<ThemeToggle />
 	</header>
 
 	<p class="bg-muted/60 flex items-start gap-2 self-start rounded-lg px-3 py-2 text-sm">
@@ -111,7 +111,7 @@
 
 			<details class="border-border group rounded-xl border px-4 py-3">
 				<summary class="cursor-pointer text-sm font-semibold select-none">
-					Chapters <span class="text-muted-foreground font-normal">({book.sections.length}) · rename or merge</span>
+					Chapters <span class="text-muted-foreground font-normal">({book.sections.length}) · rename</span>
 				</summary>
 				<div class="pt-3">
 					<SectionEditor

@@ -14,17 +14,8 @@ export function readKindleExport(html: string): Book {
   return book;
 }
 
-/** Section edits (rename, merge) work on a copy, so "Undo edits" can go back to the parsed book. */
+/** Renames work on a copy, so "Undo" can go back to the parsed book. */
 export function renameSection(book: Book, index: number, title: string): Book {
   const sections = book.sections.map((s, i) => (i === index ? { ...s, title: title.trim() || null } : s));
   return { ...book, sections };
-}
-
-/** Moves the entries of the next section into this one and drops the next section's heading. */
-export function mergeWithNext(book: Book, index: number): Book {
-  const current = book.sections[index];
-  const next = book.sections[index + 1];
-  if (!current || !next) return book;
-  const merged = { ...current, entries: [...current.entries, ...next.entries] };
-  return { ...book, sections: book.sections.toSpliced(index, 2, merged) };
 }

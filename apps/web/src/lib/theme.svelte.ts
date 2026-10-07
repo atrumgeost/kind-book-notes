@@ -1,6 +1,8 @@
 import { MediaQuery, createSubscriber } from 'svelte/reactivity';
 
-// Light / dark / system theme. "System" follows, in order:
+// The theme follows the system by default; one button switches to the other theme.
+// Switching back to whatever the system shows clears the override, so there's no
+// separate "system" option to find. "System" follows, in order:
 //   1. a `data-theme` attribute on <html>, which hosts like the Claude Artifact viewer set
 //      to pass on their own theme, and
 //   2. the operating system's `prefers-color-scheme`.
@@ -28,12 +30,21 @@ class Theme {
     return value === 'light' || value === 'dark' ? value : undefined;
   }
 
-  get resolved(): 'light' | 'dark' {
-    if (this.choice !== 'system') return this.choice;
+  get system(): 'light' | 'dark' {
     return this.#hostTheme ?? (this.#systemDark.current ? 'dark' : 'light');
   }
 
-  set(choice: ThemeChoice) {
+  get resolved(): 'light' | 'dark' {
+    return this.choice === 'system' ? this.system : this.choice;
+  }
+
+  /** Switches to the other theme; landing on the system's theme goes back to following the system. */
+  toggle() {
+    const next = this.resolved === 'dark' ? 'light' : 'dark';
+    this.#save(next === this.system ? 'system' : next);
+  }
+
+  #save(choice: ThemeChoice) {
     this.choice = choice;
     try {
       localStorage.setItem(STORAGE_KEY, choice);
