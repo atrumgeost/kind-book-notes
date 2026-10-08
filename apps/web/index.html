@@ -5,16 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="Convert Kindle highlights and notes into clean Markdown. Runs entirely in your browser." />
     <title>Kind Book Notes</title>
-    <script>
-      // Apply the saved theme before the app loads, so dark mode doesn't flash white first.
-      // Mirrors src/lib/theme.svelte.ts.
-      try {
-        const root = document.documentElement;
-        const choice = localStorage.getItem('kind-book-notes:theme') || 'system';
-        const system = root.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        root.classList.toggle('dark', (choice === 'system' ? system : choice) === 'dark');
-      } catch {}
-    </script>
+    <script src="/theme-init.js"></script>
   </head>
   <body>
     <div id="app"></div>
