@@ -267,6 +267,7 @@ function escapeBlock(text: string): string {
     .map((line) =>
       line
         .replace(/^(#{1,6}\s|>|[-+*]\s|[-*_]{3,}\s*$)/, '\\$1')
+        .replace(/^(`{3,}|~{3,})/, '\\$1')
         .replace(/^(\d+)([.)]\s)/, '$1\\$2'),
     )
     .join('\n');
