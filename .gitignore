@@ -8,3 +8,6 @@ dist-preview/
 .env.*
 !.env.example
 .DS_Store
+
+# Wrangler local dev state
+.wrangler/
