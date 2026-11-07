@@ -193,7 +193,8 @@ function renderEntry(h: Highlight, notes: Note[], options: FormatOptions): strin
 
 /** Kindle exports image highlights without the image; say so, and say where to find it. */
 function imagePlaceholder(h: Highlight, meta: string): string {
-  const where = meta ? '' : ` (${positionLabel(h) || 'no location'})`;
+  const position = positionLabel(h);
+  const where = position && meta.includes(position) ? '' : ` (${position || 'no location'})`;
   return `*🖼 Image highlight, not included in the Kindle export${where}.*`;
 }
 
