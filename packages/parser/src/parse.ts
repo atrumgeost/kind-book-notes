@@ -36,7 +36,9 @@ export function parseKindleExport(html: string): Book {
     } else if (el.classList.contains('noteHeading')) {
       pendingHeader = el;
     } else if (pendingHeader) {
-      const entry = buildEntry(pendingHeader, cleanText(el.textContent, true));
+      const text = el.cloneNode(true) as Element;
+      text.querySelectorAll('br').forEach((br) => br.replaceWith('\n'));
+      const entry = buildEntry(pendingHeader, cleanText(text.textContent, true));
       pendingHeader = null;
 
       if (entry.kind === 'highlight') {
