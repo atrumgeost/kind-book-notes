@@ -72,6 +72,7 @@ function buildEntry(header: Element, text: string): Entry {
 
 /** Kindle stores a note's location where the highlight *ends*, so it can be a few numbers past the highlight's. */
 function belongsTo(note: Note, highlight: Highlight): boolean {
+  if (note.chapter && highlight.chapter && note.chapter !== highlight.chapter) return false;
   if (note.location === undefined || highlight.location === undefined) return true;
   return note.location >= highlight.location;
 }
