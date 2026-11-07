@@ -48,7 +48,7 @@ pnpm --filter @kind-book-notes/web check   # type-check the app
 
 To test against your own books, put Kindle exports in `fixtures/private/`. The tests pick them up automatically.
 
-To host your own copy, see [DEPLOY.md](DEPLOY.md): it covers Coolify and any other Docker host.
+To host your own copy, see [DEPLOY.md](DEPLOY.md): it covers Cloudflare Workers (free) and Docker hosts such as Coolify.
 
 ## Maintenance
 

@@ -1,50 +1,81 @@
 # Deploying
 
-Kind Book Notes is a static site in a small Docker image. The [Dockerfile](Dockerfile) builds the app (running the parser tests first) and serves the result with Caddy on **port 80, plain HTTP**. Anything that can run a Docker image and put HTTPS in front of it can host it.
+Kind Book Notes is a static site: a build produces a handful of files in `apps/web/dist`, and every conversion happens in the visitor's browser. There's no server-side code to run.
 
-These steps use **[Coolify](https://coolify.io)** with **Cloudflare** for DNS, because that's the reference setup. If you use something else, see [Other Docker hosts](#other-docker-hosts): the container is the same everywhere.
+There are two ways to host it:
 
-The domain isn't in the code anywhere. You set it in your hosting tool and your DNS, which also makes changing it later easy (see [Moving to a new domain](#moving-to-a-new-domain)).
+- **[Cloudflare Workers](#cloudflare-workers-recommended)** (recommended): free, served from Cloudflare's global network, no server to maintain, deploys on every push.
+- **[Docker](#docker-coolify-or-any-host)**: a small image with Caddy, for Coolify or any other Docker host, if you'd rather run it on your own server.
+
+Both send the same security headers, including a Content Security Policy that blocks the page from making network requests, so the privacy promise is enforced by the browser on either host. The domain isn't in the code anywhere: you set it in your hosting platform.
 
 Throughout this guide, replace `books.example.com` with your own domain.
 
-## Deploy with Coolify
+## Cloudflare Workers (recommended)
 
-### 1. DNS (Cloudflare)
+The repository is ready for this: [`wrangler.jsonc`](wrangler.jsonc) tells Cloudflare to serve `apps/web/dist` as static files (there's no Worker script), and [`apps/web/public/_headers`](apps/web/public/_headers) sets the response headers. Requests to static files are free and unlimited on every Cloudflare plan, including Free.
 
-In Cloudflare → your domain → **DNS** → **Records** → **Add record**:
+### 1. Create the Worker from GitHub
 
-| Type | Name | Content | Proxy |
-|---|---|---|---|
-| A | `books` (the subdomain part) | your server's IP address | Proxied (orange cloud) |
+1. In the Cloudflare dashboard, go to **Workers & Pages** → **Create application** → **Import a repository** (GitHub).
+2. Authorize Cloudflare's GitHub app if asked, and pick this repository (or your fork).
+3. Fill in the settings:
 
-Under **SSL/TLS** → **Overview**, use **Full (strict)**. If other apps on your Coolify server already work behind Cloudflare, this is already set.
+   | Setting | Value |
+   |---|---|
+   | Project name | `kind-book-notes` (must match `name` in `wrangler.jsonc`) |
+   | Production branch | `main` |
+   | Build command | `pnpm install --frozen-lockfile && pnpm run build` |
+   | Deploy command | `npx wrangler deploy` (the default) |
+   | Root directory | leave empty (the repository root) |
 
-### 2. Create the application
+4. Click **Save and Deploy**, and follow the build log.
 
-1. **Projects** → pick or create a project → **+ New**.
-2. Choose how Coolify gets the code:
-   - **Private Repository (with GitHub App)**: recommended even for a public repository, because the GitHub App sets up automatic deploys on push for you. Pick the repository and the branch **`main`**.
-   - **Public Repository**: paste the repository URL and use branch `main`. For automatic deploys you then add a webhook yourself (Coolify shows the URL under **Webhooks**).
-   - Deploying from a fork works the same way.
-3. **Build Pack:** `Dockerfile`. Base directory `/`, Dockerfile location `/Dockerfile`.
-4. **Ports Exposes:** `80`.
-5. **Domains:** `https://books.example.com`
-6. Check that **Auto Deploy** is on (Configuration → Advanced).
-7. Click **Deploy** and follow the build log. The parser tests run during the build: if they fail, the deploy stops and the previous version keeps running.
+`pnpm run build` runs the parser tests before building the site. If a test fails, the build stops and the version that's live keeps running.
+
+When it finishes, the site is live at a free address like `kind-book-notes.<your-account>.workers.dev`. That address is fine for testing.
+
+### 2. Add your domain
+
+Your domain has to be on Cloudflare (its DNS managed there).
+
+1. Open the Worker → **Settings** → **Domains & Routes** → **Add** → **Custom Domain**.
+2. Enter `books.example.com` and confirm.
+
+Cloudflare creates the DNS record and the HTTPS certificate for you. If the hostname already has a DNS record (for example a CNAME you made earlier), delete that record first.
 
 ### 3. Check it
 
 - Open your domain, drop a Kindle export, and try **Copy Markdown** and **Download .md**.
-- In the browser's developer tools → Network, converting a book should show no requests at all. That's the privacy promise working: the server's Content Security Policy blocks the page from connecting anywhere.
+- In the browser's developer tools → Network, converting a book should show no requests at all. That's the Content Security Policy at work.
 
 ### Updating
 
-Push or merge to `main`. Coolify rebuilds and redeploys automatically. Visitors get the new version on their next page load: `index.html` is never cached, while the hashed asset files are cached for a year.
+Push or merge to `main`, and Cloudflare builds and deploys it. Pushes to other branches get preview builds on their own URL (if preview builds are on), without touching the live site.
 
-## Other Docker hosts
+Visitors get a new version on their next page load: `index.html` is never cached, while the asset files have a content hash in their names and are cached for a year.
 
-The image needs nothing special: no environment variables, no volumes, no database.
+### Moving to a new domain
+
+Example: moving from `books.example.com` to `newdomain.com`. Nothing in the code changes.
+
+1. **Get the domain onto Cloudflare.** Cloudflare Registrar sells at cost and sets up DNS automatically. A domain bought elsewhere needs its nameservers pointed to Cloudflare first.
+2. **Add it to the Worker:** Settings → Domains & Routes → Add → Custom Domain → `newdomain.com`. Add `www.newdomain.com` too if you want it.
+3. **Check** that `https://newdomain.com` works.
+4. **Redirect the old address.** Remove `books.example.com` from the Worker's custom domains. Then in Cloudflare → the old domain → **Rules** → **Redirect Rules** → **Create rule**:
+   - When: hostname equals `books.example.com`
+   - Then: dynamic redirect to `concat("https://newdomain.com", http.request.uri.path)`, status **301**.
+
+   The redirect rule needs a proxied DNS record for the old hostname to act on. If removing the custom domain deleted it, add one back: type `AAAA`, name `books`, content `100::`, Proxied. That address doesn't lead anywhere; it only lets Cloudflare see the request so the rule can redirect it.
+
+   Do the same for `www.newdomain.com` → `https://newdomain.com` if you want a single canonical address.
+5. **Update links** that point to the old address, such as the "Live" link in the README.
+
+Good to know: people's saved options and theme are stored in their browser per address. After a move they see the defaults once and set them again.
+
+## Docker (Coolify or any host)
+
+The [Dockerfile](Dockerfile) builds the site (running the parser tests first) and serves it with Caddy on **port 80, plain HTTP**. The headers come from [`deploy/Caddyfile`](deploy/Caddyfile), which mirrors `_headers`. The image needs no environment variables, volumes or database.
 
 ```sh
 docker build -t kind-book-notes .
@@ -52,31 +83,15 @@ docker run -d --restart unless-stopped -p 8080:80 kind-book-notes
 # open http://localhost:8080
 ```
 
-To put it online, run it behind any reverse proxy that terminates HTTPS (Caddy, Traefik, nginx, a Cloudflare Tunnel, or your platform's built-in proxy) and forward your domain to the container's port 80. The image includes a health check, so orchestrators can tell when it's ready.
+To put it online, run it behind anything that terminates HTTPS (Caddy, Traefik, nginx, a Cloudflare Tunnel, or your platform's proxy) and forward your domain to the container's port 80. The image has a health check, so orchestrators can tell when it's ready.
 
-## Moving to a new domain
+### With Coolify
 
-Example: moving from `books.example.com` to `newdomain.com`. Nothing in the app or the image changes.
+1. **DNS:** add an `A` record for `books` pointing to your server's IP. If you use Cloudflare, keep it Proxied and set **SSL/TLS** → **Overview** to **Full (strict)**.
+2. **Projects** → pick or create a project → **+ New** → **Private Repository (with GitHub App)** (it also works for public repositories, and it sets up deploys on push) → pick the repository and branch `main`.
+3. **Build Pack:** `Dockerfile`, base directory `/`, Dockerfile location `/Dockerfile`.
+4. **Ports Exposes:** `80`.
+5. **Domains:** `https://books.example.com`
+6. Check that **Auto Deploy** is on (Configuration → Advanced), then click **Deploy**.
 
-1. **Get the domain.** If you use Cloudflare, Cloudflare Registrar sells at cost and puts the domain in your account with DNS ready.
-2. **Add DNS records** for the new domain:
-
-   | Type | Name | Content | Proxy |
-   |---|---|---|---|
-   | A | `@` | your server's IP address | Proxied |
-   | CNAME | `www` | `newdomain.com` | Proxied |
-
-   On Cloudflare, set **SSL/TLS** → **Overview** to **Full (strict)** for the new domain too.
-3. **Add the domain in Coolify.** In the app → **Configuration** → **Domains**, list all of them, separated by commas:
-   `https://newdomain.com,https://www.newdomain.com,https://books.example.com`
-   Save, then **Redeploy** so the proxy picks up the new names. Keep the old domain for now so nothing breaks while DNS settles.
-4. **Check** that `https://newdomain.com` works.
-5. **Redirect the old address.** In Cloudflare → the old domain → **Rules** → **Redirect Rules** → **Create rule**:
-   - When: hostname equals `books.example.com`
-   - Then: dynamic redirect to `concat("https://newdomain.com", http.request.uri.path)`, status **301**.
-
-   Add the same kind of rule for `www.newdomain.com` → `https://newdomain.com` if you want a single canonical address.
-6. **Update links** that point to the old address, for example the "Live" link in the README.
-7. **Later (optional):** remove the old domain from Coolify's list. Keep the redirect rule and its DNS record so old links and bookmarks keep working.
-
-Good to know: people's saved options and theme are stored in their browser per address. After a move they see the defaults once and set them again.
+To move to a new domain on Coolify: add the DNS records for it, list both domains in **Configuration** → **Domains** (comma-separated), redeploy, then redirect the old one with a Cloudflare Redirect Rule as described above.

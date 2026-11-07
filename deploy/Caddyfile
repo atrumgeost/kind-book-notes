@@ -1,4 +1,5 @@
-# Serves the built static site. No domain here on purpose: Coolify's proxy
+# Serves the built static site for the Docker image. Keep the headers in sync with
+# apps/web/public/_headers (used on Cloudflare). No domain here on purpose: Coolify's proxy
 # routes whatever domain you configure to this container on port 80.
 {
 	# HTTPS is handled in front of us (Coolify + Cloudflare).

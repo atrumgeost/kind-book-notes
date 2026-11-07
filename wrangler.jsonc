@@ -1,0 +1,13 @@
+// Cloudflare Workers config. The site is purely static: there is no Worker script,
+// Cloudflare serves the built files directly (free and unlimited on every plan).
+// Headers, including the Content-Security-Policy, live in apps/web/public/_headers.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  // Must match the Worker's name in the Cloudflare dashboard, or Workers Builds fails.
+  "name": "kind-book-notes",
+  "compatibility_date": "2026-11-07",
+  "assets": {
+    // Unknown paths get a plain 404 (the default): this is a one-page app with no routes.
+    "directory": "./apps/web/dist"
+  }
+}
