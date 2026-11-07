@@ -76,7 +76,7 @@ function headingFirst(words: string[], minHeadingWords = 1): HeadingSplit | null
   // Drop lowercase connector words left dangling at the end of the heading ("…Little by").
   let headingEnd = split;
   while (headingEnd > 0 && !isCapitalized(words[headingEnd - 1]!)) headingEnd--;
-  if (headingEnd < minHeadingWords) return null;
+  if (headingEnd !== split || headingEnd < minHeadingWords) return null;
 
   const after = words.slice(split);
   if (!looksLikeProse(after)) return null;
