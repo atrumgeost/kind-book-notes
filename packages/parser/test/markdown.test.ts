@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_OPTIONS, suggestedFileName, toMarkdown, type FormatOptions } from '../src';
+import { DEFAULT_OPTIONS, suggestedFileName, toMarkdown, type FormatOptions, type Highlight } from '../src';
 import { loadSynthetic } from './helpers';
 
 const date = '2026-10-07';
@@ -52,7 +52,7 @@ describe('default output', () => {
   });
 
   it('escapes only Markdown that would change the structure', () => {
-    expect(render('edge-cases')).toContain('Special characters: *stars*, _underscores_, [brackets], # hash, <tag> & ampersand.');
+    expect(render('edge-cases')).toContain('Special characters: *stars*, _underscores_, [brackets], # hash, \\<tag> & ampersand.');
   });
 });
 
@@ -176,5 +176,58 @@ describe('suggestedFileName', () => {
   it('removes characters that break file systems or Obsidian links', () => {
     expect(suggestedFileName(loadSynthetic('edge-cases'))).toBe('“Quotes” & Angles.md');
     expect(suggestedFileName(loadSynthetic('single-level'))).toBe('Grow Your Garden!.md');
+  });
+});
+
+describe('review fixes', () => {
+  it('a renamed section still hides the tagged highlight that repeats its original name', () => {
+    const book = loadSynthetic('two-level');
+    book.sections[0] = { ...book.sections[0]!, displayTitle: 'Preface' };
+    const md = toMarkdown(book, { ...DEFAULT_OPTIONS, date });
+    expect(md).toContain('\n## Preface\n');
+    expect(md).not.toMatch(/^#+ Introduction$/m);
+
+    book.sections[0] = { ...book.sections[0]!, displayTitle: null };
+    const cleared = toMarkdown(book, { ...DEFAULT_OPTIONS, date });
+    expect(cleared).not.toMatch(/^#+ (Introduction|Preface)$/m);
+  });
+
+  it('escapes values for their place in a mixed frontmatter template', () => {
+    const book = { ...loadSynthetic('single-level'), title: 'Say "Hello"', subtitle: undefined };
+    const md = toMarkdown(book, {
+      ...DEFAULT_OPTIONS,
+      date,
+      frontmatter: {
+        enabled: true,
+        fields: [
+          { key: 'aliases', value: '["{{fullTitle}}"]' },
+          { key: 'single', value: "'{{title}} it''s'" },
+          { key: 'tags', value: '[book, {{author}}]' },
+          { key: 'year-note', value: 'read in {{year}}' },
+        ],
+      },
+    });
+    expect(md).toContain('aliases: ["Say \\"Hello\\""]');
+    expect(md).toContain(`single: 'Say "Hello" it''s'`);
+    expect(md).toContain('tags: [book, "Maya Ferreira"]');
+    expect(md).toContain('year-note: read in 2014');
+  });
+
+  it('keeps literal HTML tags visible in highlights, notes and headings', () => {
+    const md = render('edge-cases');
+    expect(md).toContain('# “Quotes” & \\<Angles>');
+    expect(md).toContain('\\<tag> & ampersand.');
+  });
+
+  it('escapes fence openers so a highlight cannot swallow the rest of the note', () => {
+    const book = loadSynthetic('edge-cases');
+    (book.sections[0]!.entries[2] as Highlight).text = '```js\nconst x = 1;';
+    expect(toMarkdown(book, { ...DEFAULT_OPTIONS, date })).toContain('\\```js\nconst x = 1;');
+  });
+
+  it('keeps the image location when the meta line only shows a color', () => {
+    expect(render('single-level', { location: 'off', color: 'tag' })).toContain(
+      '*🖼 Image highlight, not included in the Kindle export (Page 22 · Location 149).*\n#yellow',
+    );
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseAuthors, parsePosition, type Highlight, type Note } from '../src';
+import { parseAuthors, parseKindleExport, parsePosition, type Highlight, type Note } from '../src';
 import { loadSynthetic } from './helpers';
 
 describe('single-level export', () => {
@@ -132,5 +132,29 @@ describe('parseAuthors', () => {
     expect(parseAuthors('Plato')).toEqual(['Plato']);
     expect(parseAuthors('King, Martin Luther, Jr.')).toEqual(['King, Martin Luther, Jr.']);
     expect(parseAuthors('')).toEqual([]);
+  });
+});
+
+describe('review fixes', () => {
+  const wrap = (body: string) =>
+    `<div class="bookTitle">T</div><div class="authors">A, B</div>${body}`;
+  const highlight = (pos: string, text: string) =>
+    `<div class="noteHeading">Highlight(<span class="annotation_yellow">yellow</span>) - ${pos}</div><div class="noteText">${text}</div>`;
+  const note = (pos: string, text: string) => `<div class="noteHeading">Note - ${pos}</div><div class="noteText">${text}</div>`;
+
+  it('turns <br> into line breaks instead of gluing words together', () => {
+    const book = parseKindleExport(wrap(highlight('Location 1', 'first line<br>second line')));
+    expect(book.sections[0]!.entries[0]!.kind === 'highlight' && book.sections[0]!.entries[0]!.text).toBe(
+      'first line\nsecond line',
+    );
+  });
+
+  it('does not attach a note to a highlight from another chapter', () => {
+    const book = parseKindleExport(
+      wrap(highlight('One > Page 1 · Location 10', 'end of chapter one') + note('Two > Page 2 · Location 20', 'about two')),
+    );
+    const entries = book.sections[0]!.entries;
+    expect(entries).toHaveLength(2);
+    expect(entries[1]).toMatchObject({ kind: 'note', chapter: 'Two' });
   });
 });

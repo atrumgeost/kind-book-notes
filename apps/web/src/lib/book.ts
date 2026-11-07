@@ -14,8 +14,11 @@ export function readKindleExport(html: string): Book {
   return book;
 }
 
-/** Renames work on a copy, so "Undo" can go back to the parsed book. */
+/**
+ * Renames work on a copy, so "Undo" can go back to the parsed book. The new name goes in
+ * displayTitle: the original title still identifies the section for duplicate detection.
+ */
 export function renameSection(book: Book, index: number, title: string): Book {
-  const sections = book.sections.map((s, i) => (i === index ? { ...s, title: title.trim() || null } : s));
+  const sections = book.sections.map((s, i) => (i === index ? { ...s, displayTitle: title.trim() || null } : s));
   return { ...book, sections };
 }

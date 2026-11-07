@@ -69,4 +69,8 @@ describe('splitMergedHeading', () => {
       after: 'Once you understand why the plant is wilting, it is time to make a plan for',
     });
   });
+
+  it('never drops connector words to make a split (review fix)', () => {
+    expect(splitMergedHeading('Life in the US is very different from life elsewhere.')).toBeNull();
+  });
 });

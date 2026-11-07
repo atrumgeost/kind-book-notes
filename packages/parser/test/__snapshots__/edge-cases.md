@@ -8,7 +8,7 @@ imported: 2026-10-07
 tags: [book]
 ---
 
-# “Quotes” & <Angles>
+# “Quotes” & \<Angles>
 
 > [!note]
 > a note written before any highlight
@@ -31,4 +31,4 @@ A pink highlight with a big location number.
 
 ---
 
-Special characters: *stars*, _underscores_, [brackets], # hash, <tag> & ampersand.
+Special characters: *stars*, _underscores_, [brackets], # hash, \<tag> & ampersand.

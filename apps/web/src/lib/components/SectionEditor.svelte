@@ -27,7 +27,7 @@
 				<Input
 					aria-label="Chapter {i + 1} name"
 					placeholder="No heading"
-					value={section.title ?? ''}
+					value={(section.displayTitle !== undefined ? section.displayTitle : section.title) ?? ''}
 					onchange={(e) => onchange(renameSection(book, i, e.currentTarget.value))}
 					class="h-8 min-w-0 flex-1 text-sm"
 				/>

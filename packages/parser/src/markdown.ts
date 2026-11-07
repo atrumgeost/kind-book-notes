@@ -104,11 +104,34 @@ function renderYamlValue(template: string, vars: Record<string, Value>): string 
     if (Array.isArray(value)) return `[${value.map(yamlString).join(', ')}]`;
     return yamlString(value);
   }
-  // Mixed text is written as typed: the user owns its YAML syntax.
-  return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, name: string) => {
+  // Mixed text keeps the user's own YAML around the variables, but each value is
+  // escaped for where it sits, so a title like `Say "Hello"` can't break the YAML.
+  return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, name: string, offset: number) => {
     const value = vars[name];
-    return Array.isArray(value) ? value.join(', ') : String(value ?? '');
+    const text = Array.isArray(value) ? value.join(', ') : String(value ?? '');
+    switch (quoteContext(template.slice(0, offset))) {
+      case 'double':
+        return yamlString(text).slice(1, -1);
+      case 'single':
+        return text.replaceAll("'", "''");
+      default:
+        // Bare values become quoted strings; numbers stay as they are.
+        return typeof value === 'number' ? text : yamlString(text);
+    }
   }).trim();
+}
+
+/** Whether a position in a YAML value is inside "double" or 'single' quotes, by scanning the text before it. */
+function quoteContext(before: string): 'double' | 'single' | 'none' {
+  let quote: 'double' | 'single' | 'none' = 'none';
+  for (let i = 0; i < before.length; i++) {
+    const c = before[i];
+    if (quote === 'double' && c === '\\') i++; // skip the escaped character
+    else if (quote === 'none' && c === '"') quote = 'double';
+    else if (quote === 'none' && c === "'") quote = 'single';
+    else if ((quote === 'double' && c === '"') || (quote === 'single' && c === "'")) quote = 'none';
+  }
+  return quote;
 }
 
 // JSON strings are valid YAML double-quoted strings, which handles quotes, colons and "[[links]]".
@@ -138,7 +161,8 @@ export function renderBody(book: Book, options: FormatOptions): string {
 function renderSection(section: Section, options: FormatOptions, chapterLevel: number): Block[] {
   const blocks: Block[] = [];
   // Entries before the first section heading get no heading at all.
-  if (section.title !== null) blocks.push({ kind: 'heading', text: heading(options.chapterLevel, section.title) });
+  const shown = section.displayTitle !== undefined ? section.displayTitle : section.title;
+  if (shown) blocks.push({ kind: 'heading', text: heading(options.chapterLevel, shown) });
 
   let chapter: string | undefined;
   for (const entry of section.entries) {
@@ -208,7 +232,7 @@ function renderNotes(notes: Note[], options: FormatOptions): string {
 }
 
 function renderNote(note: Note, options: FormatOptions): string {
-  const lines = note.text.split('\n');
+  const lines = escapeHtml(note.text).split('\n');
   switch (options.noteStyle) {
     case 'callout':
       return ['> [!note]', ...lines.map((l) => `> ${l}`)].join('\n');
@@ -253,7 +277,15 @@ function joinBlocks(blocks: Block[], options: FormatOptions): string {
 }
 
 function heading(level: number, text: string): string {
-  return `${'#'.repeat(Math.min(6, Math.max(1, level)))} ${text}`;
+  return `${'#'.repeat(Math.min(6, Math.max(1, level)))} ${escapeHtml(text)}`;
+}
+
+/**
+ * Markdown renders raw HTML, so a literal "<tag>" in a highlight would vanish.
+ * A backslash keeps it visible while the source stays readable.
+ */
+function escapeHtml(text: string): string {
+  return text.replace(/<(?=[A-Za-z/!?])/g, '\\<');
 }
 
 /**
@@ -262,7 +294,7 @@ function heading(level: number, text: string): string {
  * characters stay readable in the source.
  */
 function escapeBlock(text: string): string {
-  return text
+  return escapeHtml(text)
     .split('\n')
     .map((line) =>
       line

@@ -13,8 +13,14 @@ export interface Book {
 }
 
 export interface Section {
-  /** null for entries that appear before the first section heading. */
+  /** The heading from the export; null for entries before the first section heading. */
   title: string | null;
+  /**
+   * Set when someone renames the section: the heading to print instead of `title`
+   * (null drops the heading). `title` stays as exported, because duplicate-heading
+   * detection compares tagged highlights against the book's real section names.
+   */
+  displayTitle?: string | null;
   entries: Entry[];
 }
 
