@@ -2,16 +2,13 @@
 
 Kind Book Notes is a static site: a build produces a handful of files in `apps/web/dist`, and every conversion happens in the visitor's browser. There's no server-side code to run.
 
-There are two ways to host it:
+It's hosted on **Cloudflare Workers** as static files: free, served from Cloudflare's global network, no server to maintain, and deployed on every push to `main`. The security headers include a Content Security Policy that blocks the page from making network requests, so the privacy promise is enforced by the browser. The domain isn't in the code anywhere: you set it in Cloudflare.
 
-- **[Cloudflare Workers](#cloudflare-workers-recommended)** (recommended): free, served from Cloudflare's global network, no server to maintain, deploys on every push.
-- **[Docker](#docker-coolify-or-any-host)**: a small image with Caddy, for Coolify or any other Docker host, if you'd rather run it on your own server.
-
-Both send the same security headers, including a Content Security Policy that blocks the page from making network requests, so the privacy promise is enforced by the browser on either host. The domain isn't in the code anywhere: you set it in your hosting platform.
+Because the build output is plain static files, any static host can serve `apps/web/dist`, but only Cloudflare is set up and maintained here. If you use another host, copy the headers from [`apps/web/public/_headers`](apps/web/public/_headers) into its configuration.
 
 Throughout this guide, replace `books.example.com` with your own domain.
 
-## Cloudflare Workers (recommended)
+## Cloudflare Workers
 
 The repository is ready for this: [`wrangler.jsonc`](wrangler.jsonc) tells Cloudflare to serve `apps/web/dist` as static files (there's no Worker script), and [`apps/web/public/_headers`](apps/web/public/_headers) sets the response headers. Requests to static files are free and unlimited on every Cloudflare plan, including Free.
 
@@ -72,26 +69,3 @@ Example: moving from `books.example.com` to `newdomain.com`. Nothing in the code
 5. **Update links** that point to the old address, such as the "Live" link in the README.
 
 Good to know: people's saved options and theme are stored in their browser per address. After a move they see the defaults once and set them again.
-
-## Docker (Coolify or any host)
-
-The [Dockerfile](Dockerfile) builds the site (running the parser tests first) and serves it with Caddy on **port 80, plain HTTP**. The headers come from [`deploy/Caddyfile`](deploy/Caddyfile), which mirrors `_headers`. The image needs no environment variables, volumes or database.
-
-```sh
-docker build -t kind-book-notes .
-docker run -d --restart unless-stopped -p 8080:80 kind-book-notes
-# open http://localhost:8080
-```
-
-To put it online, run it behind anything that terminates HTTPS (Caddy, Traefik, nginx, a Cloudflare Tunnel, or your platform's proxy) and forward your domain to the container's port 80. The image has a health check, so orchestrators can tell when it's ready.
-
-### With Coolify
-
-1. **DNS:** add an `A` record for `books` pointing to your server's IP. If you use Cloudflare, keep it Proxied and set **SSL/TLS** → **Overview** to **Full (strict)**.
-2. **Projects** → pick or create a project → **+ New** → **Private Repository (with GitHub App)** (it also works for public repositories, and it sets up deploys on push) → pick the repository and branch `main`.
-3. **Build Pack:** `Dockerfile`, base directory `/`, Dockerfile location `/Dockerfile`.
-4. **Ports Exposes:** `80`.
-5. **Domains:** `https://books.example.com`
-6. Check that **Auto Deploy** is on (Configuration → Advanced), then click **Deploy**.
-
-To move to a new domain on Coolify: add the DNS records for it, list both domains in **Configuration** → **Domains** (comma-separated), redeploy, then redirect the old one with a Cloudflare Redirect Rule as described above.

@@ -1,5 +1,4 @@
 # Response headers for Cloudflare (Workers static assets). Not served as a file.
-# Keep in sync with deploy/Caddyfile, which does the same for the Docker image.
 
 # connect-src 'none' makes the privacy promise enforceable: the page cannot send
 # anything anywhere, even if a bug or a dependency tried to.
