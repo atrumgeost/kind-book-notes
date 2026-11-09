@@ -2,7 +2,7 @@
 
 Turn your Kindle highlights and notes into clean Markdown for Obsidian or any notes app.
 
-**Live:** https://books.katanalab.dev
+**Try it: [booknotes.katanalab.dev](https://booknotes.katanalab.dev)**. It’s free, there’s nothing to install, and your files never leave your browser.
 
 Drop a Kindle "Export Notebook" file on the page and get Markdown back:
 
@@ -32,7 +32,6 @@ packages/parser   Pure TypeScript, no runtime dependencies. parseKindleExport() 
 apps/web          The web app: Vite, Svelte 5, Tailwind CSS v4, shadcn-svelte.
 fixtures/synthetic  Invented books with the exact structure of real exports. Tests use these.
 fixtures/private    Your real exports, for local testing only. Ignored by git; never commit them (copyrighted text).
-deploy/Caddyfile  Web server config for the Docker image.
 ```
 
 ## Local development
@@ -48,7 +47,7 @@ pnpm --filter @kind-book-notes/web check   # type-check the app
 
 To test against your own books, put Kindle exports in `fixtures/private/`. The tests pick them up automatically.
 
-To host your own copy, see [DEPLOY.md](DEPLOY.md): it covers Cloudflare Workers (free) and Docker hosts such as Coolify.
+To host your own copy, see [DEPLOY.md](DEPLOY.md): it uses Cloudflare Workers, which is free for a static site like this.
 
 ## Maintenance
 

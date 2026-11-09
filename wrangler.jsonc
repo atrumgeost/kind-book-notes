@@ -6,6 +6,9 @@
   // Must match the Worker's name in the Cloudflare dashboard, or Workers Builds fails.
   "name": "kind-book-notes",
   "compatibility_date": "2026-11-07",
+  // Required by `wrangler preview`, which Workers Builds runs for branches other than main.
+  // Empty is enough: assets and compatibility settings stay at the top level.
+  "previews": {},
   "assets": {
     // Unknown paths get a plain 404 (the default): this is a one-page app with no routes.
     "directory": "./apps/web/dist"
