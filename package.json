@@ -1,0 +1,15 @@
+{
+  "name": "kind-book-notes",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "packageManager": "pnpm@10.28.0",
+  "scripts": {
+    "build": "pnpm test && pnpm --filter @kind-book-notes/web build",
+    "deploy": "wrangler deploy",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "wrangler": "^4.158.0"
+  }
+}

@@ -1,0 +1,7 @@
+# Real Kindle exports must never end up in an image.
+fixtures/private
+**/node_modules
+**/dist
+**/dist-preview
+.git
+.env*

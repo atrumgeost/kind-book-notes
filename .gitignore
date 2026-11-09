@@ -3,7 +3,11 @@ fixtures/private/
 
 node_modules/
 dist/
+dist-preview/
 .env
 .env.*
 !.env.example
 .DS_Store
+
+# Wrangler local dev state
+.wrangler/
