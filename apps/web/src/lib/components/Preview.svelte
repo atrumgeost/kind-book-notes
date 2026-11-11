@@ -32,14 +32,18 @@
 	}
 </script>
 
-<div class="flex min-w-0 flex-col gap-3">
+<div class="flex min-w-0 flex-col gap-3 lg:flex-1">
 	<div class="flex flex-wrap items-center gap-2">
 		<Button onclick={copy}><CopyIcon /> Copy Markdown</Button>
 		<Button variant="outline" onclick={download}><DownloadIcon /> Download .md</Button>
 		<span class="text-muted-foreground min-w-0 truncate font-mono text-xs" title={fileName}>{fileName}</span>
 	</div>
-	<pre
-		id="markdown-preview"
-		class="bg-muted/60 border-border max-h-[70vh] overflow-auto rounded-lg border p-4 font-mono text-[0.8rem] leading-relaxed break-words whitespace-pre-wrap"
-		aria-label="Markdown preview">{markdown}</pre>
+	<!-- On desktop the <pre> is absolutely positioned inside this box: that way a long document can't make the
+	     row taller than the options panel, and the box simply takes whatever height is left (min-h keeps it usable). -->
+	<div class="relative lg:min-h-96 lg:flex-1">
+		<pre
+			id="markdown-preview"
+			class="bg-muted/60 border-border max-h-[70vh] overflow-auto rounded-lg border p-4 font-mono text-[0.8rem] leading-relaxed break-words whitespace-pre-wrap lg:absolute lg:inset-0 lg:max-h-none"
+			aria-label="Markdown preview">{markdown}</pre>
+	</div>
 </div>

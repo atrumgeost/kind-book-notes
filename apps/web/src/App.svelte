@@ -95,7 +95,8 @@
 			</div>
 		</aside>
 
-		<main class="flex min-w-0 flex-col gap-4">
+		<!-- lg:self-stretch overrides the grid's items-start so the preview can fill the height of the options panel. -->
+		<main class="flex min-w-0 flex-col gap-4 lg:self-stretch">
 			<div class="flex flex-col gap-2">
 				<div class="flex flex-wrap items-center gap-2">
 					{#if isSample}<Badge variant="secondary">Sample book</Badge>{/if}
