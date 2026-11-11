@@ -48,7 +48,7 @@ Cloudflare creates the DNS record and the HTTPS certificate for you. If the host
 
 ### Updating
 
-Push or merge to `main`, and Cloudflare builds and deploys it. Pushes to other branches get preview builds on their own URL (if preview builds are on), without touching the live site.
+Push or merge to `main`, and Cloudflare builds and deploys it. Pushes to other branches get preview builds on their own URL (if preview builds are on), without touching the live site. The preview address is `<branch-with-slashes-as-dashes>-kind-book-notes.<your-account>.workers.dev`, so the branch `feature/new-layout` is at `feature-new-layout-kind-book-notes.<your-account>.workers.dev`.
 
 Visitors get a new version on their next page load: `index.html` is never cached, while the asset files have a content hash in their names and are cached for a year.
 
