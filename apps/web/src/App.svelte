@@ -6,6 +6,7 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { Toaster } from '$lib/components/ui/sonner';
 	import DropZone from '$lib/components/DropZone.svelte';
+	import HowToExport from '$lib/components/HowToExport.svelte';
 	import OptionsPanel from '$lib/components/OptionsPanel.svelte';
 	import Preview from '$lib/components/Preview.svelte';
 	import SectionEditor from '$lib/components/SectionEditor.svelte';
@@ -71,6 +72,9 @@
 	</p>
 
 	<DropZone compact={!isSample} onfile={loadFile} />
+
+	<!-- Only before a real book is loaded: afterwards people already know how they got here. -->
+	{#if isSample}<HowToExport />{/if}
 
 	{#if error}
 		<p role="alert" class="border-destructive/40 bg-destructive/10 text-destructive rounded-lg border px-4 py-3 text-sm">

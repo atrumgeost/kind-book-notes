@@ -45,8 +45,7 @@
 	{:else}
 		<span class="font-heading text-xl font-semibold text-balance">Drop your Kindle notebook export here</span>
 		<span class="text-muted-foreground max-w-md text-sm text-balance">
-			or click to choose the <code class="font-mono text-xs">.html</code> file. In the Kindle app, open a book’s Notebook
-			and choose Export → HTML.
+			or click to choose the <code class="font-mono text-xs">.html</code> file.
 		</span>
 	{/if}
 	<input
